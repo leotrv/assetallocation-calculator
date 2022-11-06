@@ -1,5 +1,4 @@
 #define variables
-token = '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'
 yield_stocks = 5.2
 yield_bonds = 0.8
 
@@ -50,7 +49,7 @@ def get_investment_horizon():
 def lvl1_asset_allocation(expected_yield, risk_bearing_capacity, liquidity_needs, investment_horizon, yield_stocks, yield_bonds):
     #use expected_yield to calculate asset allocation
     if expected_yield > yield_bonds:
-        if expected_yield <= yield_stocks:
+        if expected_yield < yield_stocks:
             quotient_bonds = ((1+yield_bonds/100)-(1+yield_stocks/100))/((1+expected_yield/100)-(1+yield_stocks/100))
             quotient_stocks = 1/(1-1/quotient_bonds)
             allocation_stocks = round(100/quotient_stocks, 2)
@@ -63,7 +62,14 @@ def lvl1_asset_allocation(expected_yield, risk_bearing_capacity, liquidity_needs
         allocation_stocks = 0
         allocation_bonds = 100
 
-    #use risk_bearing_capacity to recalculate asset allocation
+    #use risk_bearing_capacity (1-10) to recalculate asset allocation - 5 means allocation remains the same, 10 doubles stocks allocation, 0 set stocks allocation to 0
+    allocation_stocks = allocation_stocks * 2 * risk_bearing_capacity / 10
+    if allocation_stocks > 100:
+        allocation_stocks = 100
+    allocation_bonds = 100 - allocation_stocks
+
+    #use liquidity_needs [€] to recalculate asset allocation
+    
 
     return allocation_stocks, allocation_bonds
 
@@ -74,7 +80,7 @@ def main():
     investment_horizon = get_investment_horizon()
     allocation = lvl1_asset_allocation(expected_yield, risk_bearing_capacity, liquidity_needs, investment_horizon, yield_stocks, yield_bonds)
 
-    print('Suggested allocation - stocks: %', allocation[0], 'bonds: %', allocation[1])
+    print(f'Suggested allocation:  {allocation[0]}% stocks, {allocation[1]}% bonds')
 
 
 main()

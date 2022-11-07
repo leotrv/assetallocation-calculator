@@ -1,7 +1,20 @@
+import math
+
 #define variables
 yield_stocks = 5.2
 yield_bonds = 0.8
 
+def get_saving_rate():
+    while True:
+        saving_rate = input('Please enter your saving rate [€]: ')
+        if saving_rate.isdigit():
+            saving_rate = int(saving_rate)
+            break
+        elif saving_rate.replace('.','',1).isdigit():
+            saving_rate = float(saving_rate)
+            break
+        else: print('Please enter a number!')
+    return saving_rate
 
 def get_expected_yield():
     while True:
@@ -46,21 +59,24 @@ def get_investment_horizon():
     return investment_horizon
 
 
-def lvl1_asset_allocation(expected_yield, risk_bearing_capacity, liquidity_needs, investment_horizon, yield_stocks, yield_bonds):
+def lvl1_asset_allocation(saving_rate, expected_yield, risk_bearing_capacity, liquidity_needs, investment_horizon, yield_stocks, yield_bonds):
     #use expected_yield to calculate asset allocation
     if expected_yield > yield_bonds:
         if expected_yield < yield_stocks:
             quotient_bonds = ((1+yield_bonds/100)-(1+yield_stocks/100))/((1+expected_yield/100)-(1+yield_stocks/100))
             quotient_stocks = 1/(1-1/quotient_bonds)
-            allocation_stocks = round(100/quotient_stocks, 2)
-            allocation_bonds = round(100/quotient_bonds, 2)
+            allocation_stocks = 100/quotient_stocks
+            allocation_bonds = 100/quotient_bonds
         else:
             allocation_stocks = 100
             allocation_bonds = 0
-            print('Expected yield too high, selected 100 % stocks to get nearest to preferred yield')
+            print('Expected yield too high, selected 100 % stocks to get nearest to preferred yield...')
     else:
         allocation_stocks = 0
         allocation_bonds = 100
+
+    amount_stocks = allocation_stocks / 100 * saving_rate
+    amount_bonds = allocation_bonds / 100 * saving_rate
 
     #use risk_bearing_capacity (1-10) to recalculate asset allocation - 5 means allocation remains the same, 10 doubles stocks allocation, 0 set stocks allocation to 0
     allocation_stocks = allocation_stocks * 2 * risk_bearing_capacity / 10
@@ -69,18 +85,32 @@ def lvl1_asset_allocation(expected_yield, risk_bearing_capacity, liquidity_needs
     allocation_bonds = 100 - allocation_stocks
 
     #use liquidity_needs [€] to recalculate asset allocation
-    
+    no_investment_months = liquidity_needs/saving_rate
 
-    return allocation_stocks, allocation_bonds
+    #use investment_horizon [years] to recalculate asset allocation
+    final_amount_stocks = saving_rate * allocation_stocks/100 *investment_horizon * 12 - no_investment_months * saving_rate * allocation_stocks/100
+    final_amount_bonds = saving_rate * allocation_bonds/100 * investment_horizon * 12 - no_investment_months * saving_rate * allocation_bonds/100
+    if investment_horizon < no_investment_months/12:
+        final_amount_stocks = 0
+        final_amount_bonds = 0
+    return allocation_stocks, amount_stocks, allocation_bonds, amount_bonds, no_investment_months, final_amount_stocks, final_amount_bonds
 
 def main():
+    saving_rate = get_saving_rate()
     expected_yield = get_expected_yield()
     risk_bearing_capacity = get_risk_bearing_capacity()
     liquidity_needs = get_liquidity_needs()
     investment_horizon = get_investment_horizon()
-    allocation = lvl1_asset_allocation(expected_yield, risk_bearing_capacity, liquidity_needs, investment_horizon, yield_stocks, yield_bonds)
+    allocation = lvl1_asset_allocation(saving_rate, expected_yield, risk_bearing_capacity, liquidity_needs, investment_horizon, yield_stocks, yield_bonds)
 
-    print(f'Suggested allocation:  {allocation[0]}% stocks, {allocation[1]}% bonds')
+    print(f'Months without investment to meet your liquidity targets: {math.ceil(allocation[4])}')
+    print(f'Suggested allocation:  {round(allocation[0],2)}% stocks: {round(allocation[1],2)} €/month, {round(allocation[2],2)}% bonds: {round(allocation[3],2)} €/month')
+    print(f'At the end of your investment horizon you will have invested {round(allocation[5])}€ in stocks and {round(allocation[6])}€ in bonds.')
 
+    monthly_distribution_dict = {'months_without_investment': allocation[4],'amount_stocks': allocation[1], 'amount_bonds': allocation[2]}
+    final_distribution_dict = {'liquidity': liquidity_needs, 'stocks': allocation[5], 'bonds': allocation[6]}
+
+    print(monthly_distribution_dict)
+    print(final_distribution_dict)
 
 main()

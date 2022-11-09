@@ -1,0 +1,3 @@
+    # print(f'Months without investment to meet your liquidity targets: {math.ceil(allocation[4])}')
+    # print(f'Suggested allocation:  {round(allocation[0],2)}% stocks: {round(allocation[1],2)} €/month, {round(allocation[2],2)}% bonds: {round(allocation[3],2)} €/month')
+    # print(f'At the end of your investment horizon you will have invested {round(allocation[5])}€ in stocks and {round(allocation[6])}€ in bonds.')
